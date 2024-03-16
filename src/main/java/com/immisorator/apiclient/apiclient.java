@@ -17,13 +17,17 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.Scanner;
 import java.util.stream.Collectors;
 
 @Mod("apiclient")
 public class apiclient {
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final java.util.logging.Logger LOGGER = LogManager.getLogger();
 
     public apiclient() {
         // Register the setup method for modloading
@@ -42,38 +46,31 @@ public class apiclient {
     private void setup(final FMLCommonSetupEvent event) {
         // some preinit code
         LOGGER.info("HELLO FROM PREINIT");
-        try {
-            URL immisoratorUrl = new URL(
-                    "https://immisorator-api.azurewebsites.net/api/discord?code=nqCORyCbgcM-FhsIPTAoSfsBcs10uOhnXk1YPep30Z9NAzFulqhseg==");
-                    HttpURLConnection conn = (HttpURLConnection) immisoratorUrl.openConnection();
-                    conn.setRequestMethod("GET");
-                    conn.connect();
-                    
-                    //Getting the response code
-                    int responsecode = conn.getResponseCode();
-                    if (responsecode != 200) {
-                        throw new RuntimeException("HttpResponseCode: " + responsecode);
-                    }
-                    String inline = "";
-                    Scanner scanner = new Scanner(immisoratorUrl.openStream());
-                
-                    //Write all the JSON data into a string using a scanner
-                    while (scanner.hasNext()) {
-                        inline += scanner.nextLine();
-                    }
-                    LOGGER.info(inline);
-        } catch (Exception e) {
-            LOGGER.error("error happened {}", e);
-            e.printStackTrace();
-        }
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(
+                        "https://immisorator-api.azurewebsites.net/api/discord?code=nqCORyCbgcM-FhsIPTAoSfsBcs10uOhnXk1YPep30Z9NAzFulqhseg=="))
+                .PUT(/* json-ify a server object with updated data */)
+                .build();
 
-        LOGGER.info("DIRT BLOCK >> {}", Blocks.DIRT.getRegistryName());
+        HttpClient client = HttpClient.newBuilder()
+                .build();
+        client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
+                .thenApply(HttpResponse::body)
+                .thenAccept(z -> {
+                    LOGGER.info("Returned response from Immisorator API: {}", z);
+                    System.out.println(z);
+                })
+                .exceptionally(t -> {
+                    LOGGER.warning("Exception: {}", t.getMessage());
+                    System.out.println("Exception: " + t.getMessage());
+                    return null;
+                });
+
     }
 
-    private void doClientStuff(final FMLClientSetupEvent event) {
-        // do something that can only be done on the client
-        LOGGER.info("Got game settings {}", event.getMinecraftSupplier().get().options);
-    }
+    // private void doClientStuff(final FMLClientSetupEvent event) {
+    // // do something that can only be done on the client
+    // }
 
     private void enqueueIMC(final InterModEnqueueEvent event) {
         // some example code to dispatch IMC to another mod
@@ -96,15 +93,16 @@ public class apiclient {
         LOGGER.info("HELLO from server starting");
     }
 
-    // You can use EventBusSubscriber to automatically subscribe events on the
-    // contained class (this is subscribing to the MOD
-    // Event bus for receiving Registry Events)
-    @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD)
-    public static class RegistryEvents {
-        @SubscribeEvent
-        public static void onBlocksRegistry(final RegistryEvent.Register<Block> blockRegistryEvent) {
-            // register a new block here
-            LOGGER.info("HELLO from Register Block");
-        }
-    }
+    // // You can use EventBusSubscriber to automatically subscribe events on the
+    // // contained class (this is subscribing to the MOD
+    // // Event bus for receiving Registry Events)
+    // @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD)
+    // public static class RegistryEvents {
+    // @SubscribeEvent
+    // public static void onBlocksRegistry(final RegistryEvent.Register<Block>
+    // blockRegistryEvent) {
+    // // register a new block here
+    // LOGGER.info("HELLO from Register Block");
+    // }
+    // }
 }
