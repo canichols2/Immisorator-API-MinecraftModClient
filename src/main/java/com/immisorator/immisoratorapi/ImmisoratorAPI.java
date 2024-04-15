@@ -17,6 +17,10 @@ public class ImmisoratorAPI {
     public ImmisoratorAPI(){
         LOGGER.info("Immisorator API is starting");
         MinecraftForge.EVENT_BUS.register(this);
+        // TODO: Create class to call API
+        // TODO: Create class to read config (which will have api url and server key)
+        // TODO: Instantiate class to call API
+        // TODO: Instantiate class to read config
     }
 
     @SubscribeEvent
