@@ -1,6 +1,12 @@
 package com.immisorator.immisoratorapi;
 
-import okhttp3.*;
+import okhttp3.OkHttpClient;
+import okhttp3.RequestBody;
+import okhttp3.Request;
+import okhttp3.MediaType;
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.Response;
 import java.io.IOException;
 import java.util.UUID;
 
@@ -18,11 +24,13 @@ public class ApiClient {
      */
     public void CreateOrUpdateServer(MinecraftServerInstance server,ServerInstanceCallback callback){
         String serverString = gson.toJson(server);
+        String apiUrl = mainConfig.getValue(Config.ConfigKey.API_URL);
+        String apiKey = mainConfig.getValue(Config.ConfigKey.API_KEY);
 
         OkHttpClient client = new OkHttpClient();
         RequestBody serverPostBody = RequestBody.create(JSON, serverString);
         Request serverPost = new Request.Builder()
-                .url(mainConfig.getValue(Config.ConfigKey.API_URL) + "/api/ServerInstance")
+                .url( apiUrl + "/api/ServerInstance" + "?code=" + apiKey)
                 .post(serverPostBody)
                 .build();
 
@@ -52,8 +60,10 @@ public class ApiClient {
 
     public void GetCurrentStatus(UUID serverId, CurrentStatusCallback callback) {
         OkHttpClient client = new OkHttpClient();
+        String apiUrl = mainConfig.getValue(Config.ConfigKey.API_URL);
+        String apiKey = mainConfig.getValue(Config.ConfigKey.API_KEY);
         Request playerStatusUpdatePost = new Request.Builder()
-                .url(mainConfig.getValue(Config.ConfigKey.API_URL) + "/api/ServerStatus/" + serverId)
+                .url(apiUrl + "/api/ServerStatus/" + serverId + "?code=" + apiKey)
                 .get()
                 .build();
 
@@ -86,11 +96,13 @@ public class ApiClient {
 
     public void SendPlayerUpdate(MinecraftServerStatusUpdate status) {
         String statusString = gson.toJson(status);
+        String apiUrl = mainConfig.getValue(Config.ConfigKey.API_URL);
+        String apiKey = mainConfig.getValue(Config.ConfigKey.API_KEY);
 
         OkHttpClient client = new OkHttpClient();
         RequestBody playerUpdatePostBody = RequestBody.create(JSON, statusString);
         Request playerStatusUpdatePost = new Request.Builder()
-                .url(mainConfig.getValue(Config.ConfigKey.API_URL) + "/api/ServerStatus/" + status.getServerId())
+                .url(apiUrl + "/api/ServerStatus/" + status.getServerId() + "?code=" + apiKey)
                 .post(playerUpdatePostBody)
                 .build();
 

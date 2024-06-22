@@ -14,7 +14,7 @@ public class Config {
     public static final String CONFIG_DIR_NAME = "config/ComImmisoratorApi";
     private static HashMap<String, String> mainConfigDefaults = new HashMap<String, String>(){
         {
-            put(ConfigKey.API_URL, "http://localhost:8081/");
+            put(ConfigKey.API_URL, "https://immisorator-api.azurewebsites.net");
             put(ConfigKey.API_KEY, "");
             put(ConfigKey.SERVER_ID, "");
             put(ConfigKey.SERVER_NAME, "New Minecraft Server");

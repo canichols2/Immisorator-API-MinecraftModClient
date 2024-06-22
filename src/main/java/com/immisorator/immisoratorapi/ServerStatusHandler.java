@@ -84,6 +84,10 @@ public class ServerStatusHandler {
             LOGGER.info("Getting current status from API");
             // TODO: Get ServerID from config
             UUID serverId = GetServerId();
+            if(serverId == null) {
+                LOGGER.error("Server ID is null, cannot get status from API");
+                return;
+            }
             apiClient.GetCurrentStatus(serverId, apiClient.new CurrentStatusCallback() {
                 @Override
                 public void onSuccess(MinecraftServerStatusUpdate status) {

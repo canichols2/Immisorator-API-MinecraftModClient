@@ -8,17 +8,20 @@ buildscript {
         classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
     }
 }
+
 // Only edit below this line, the above code adds and enables the necessary things for Forge to be setup.
 plugins {
     id 'eclipse'
     id 'maven-publish'
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
 }
 apply plugin: 'net.minecraftforge.gradle'
+apply plugin: 'com.github.johnrengelman.shadow'
 
 
 // Version numbering uses Maven conventions: https://docs.minecraftforge.net/en/1.19.x/gettingstarted/versioning/
 // {MC_VERSION}-{ModVersion}.{APIVersion}.{MinorVersion}.{PatchVersion}
-version = '1.18.2-0.0.0.0'
+version = '1.18.2-1.1.0.0'
 group = 'com.immisorator' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = 'immisoratorapi'
 base.archivesName = 'immisoratorapi'
@@ -150,12 +153,17 @@ repositories {
     // }
 }
 
+configurations {
+    shade
+    implementation.extendsFrom shade
+}
+
 dependencies {
     // Specify the version of Minecraft to use. If this is any group other than 'net.minecraft', it is assumed
     // that the dep is a ForgeGradle 'patcher' dependency, and its patches will be applied.
     // The userdev artifact is a special name and will get all sorts of transformations applied to it.
     minecraft 'net.minecraftforge:forge:1.18.2-40.2.0'
-    minecraftLibrary 'com.squareup.okhttp3:okhttp:3.14.6'
+    shade 'com.squareup.okhttp3:okhttp:3.14.6'
     minecraftLibrary 'org.nd4j:jackson:1.0.0-M2.1'
     minecraftLibrary 'com.google.code.gson:gson:2.10'
 
@@ -174,6 +182,7 @@ dependencies {
 
 // Example for how to get properties into the manifest for reading at runtime.
 jar {
+    archiveClassifier = 'slim'
     manifest {
         attributes([
                 "Specification-Title"     : "immisorator.com api integration",
@@ -187,14 +196,32 @@ jar {
     }
 }
 
+shadowJar {        
+    archiveClassifier = 'shadow'
+    configurations = [project.configurations.shade]
+    relocate 'com.squareup.okhttp3', "${project.group}.relocated.okhttp3"
+    // relocate 'org.nd4j', "${project.group}.relocated.jackson"
+    // relocate 'com.google.code.gson', "${project.group}.relocated.gson"
+    finalizedBy 'reobfShadowJar'
+}
+
+assemble.dependsOn shadowJar
+
+reobf {
+    shadowJar {}
+}
+
 // Example configuration to allow publishing using the maven-publish plugin
 // This is the preferred method to reobfuscate your jar file
-jar.finalizedBy('reobfJar')
+// jar.finalizedBy('reobfJar')
 // However if you are in a multi-project build, dev time needs unobfed jar files, so you can delay the obfuscation until publishing by doing
-// publish.dependsOn('reobfJar')
+publish.dependsOn('reobfJar')
 
 publishing {
     publications {
+        shadow(MavenPublication) {publication ->
+            project.shadow.component(publication)
+        }
         mavenJava(MavenPublication) {
             artifact jar
         }
